@@ -1,19 +1,43 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+from 数据文件.基本参数 import *
+import pandas as pd
+import numpy as np
+import os
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+option=pd.read_csv(PATH_OPTION,iterator=True,chunksize=400000)
+under=pd.read_csv(PATH_UNDER)
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+i=0
+for data in option:
+    #data=data[data['date']>20100101]
+    # data['days'] = pd.to_datetime(data['exdate'], format='%Y%m%d') - pd.to_datetime(data['date'],
+    #                                                                                           format='%Y%m%d')
+    # data['days']
+    i+=1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
