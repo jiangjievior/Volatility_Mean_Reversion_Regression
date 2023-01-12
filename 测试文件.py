@@ -7,6 +7,55 @@ import datetime
 import time,timeit
 
 
+########################################################################################################################
+#Heston模型求解范例测试   之   Heston1993年期权计算公式参数最优化求解
+########################################################################################################################
+from 项目文件.Heston模型.Heston1993期权定价计算公式 import H93_call_value
+from 项目文件.Heston模型.Heston1993参数最优化 import Calibrate_Heston_1993
+option=pd.read_csv('项目文件/Heston模型/SPY期权.csv')
+#添加无风险利率
+rate_risk_free=pd.read_csv('项目文件/Heston模型/美国国债利率.csv',usecols=['Date','12.0'])
+rate_risk_free.columns=['date','rate_risk_free']
+rate_risk_free['date']=rate_risk_free['date'].apply(lambda x:x[:4]+x[5:7]+x[8:])
+rate_risk_free['date']=rate_risk_free['date'].astype(int)
+
+option=pd.merge(option,rate_risk_free,on=['date'])
+option
+option_=option[(option['date']==20200331)&(option['Type']=='C')]
+option_=option_[(option_['Volume']>0)&(option_['OpenInterest']>0)&(option_['Expiration']==20200408)]
+
+
+
+CH=Calibrate_Heston_1993(option=option_)
+p=CH.H93_calibration_full()
+
+
+
+option.columns
+
+
+
+
+
+
+
+
+########################################################################################################################
+#Heston模型求解范例测试   之   Heston1993年期权计算公式
+########################################################################################################################
+from 项目文件.Heston1993模型.Heston1993期权定价计算公式 import H93_call_value
+
+Call=H93_call_value(S0=225.24, K=219.5, T=0.02192, r=0.0089)#5.82
+
+
+
+
+
+
+
+
+
+
 
 
 ########################################################################################################################
