@@ -9,6 +9,7 @@ def get_finance_compy(
         name_fin=[],
 ):
     finance=pd.read_csv(PATH_FINANCIAL)
+    finance['TICKER'].
 
 
 
