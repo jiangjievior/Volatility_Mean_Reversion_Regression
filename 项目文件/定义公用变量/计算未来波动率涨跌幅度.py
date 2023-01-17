@@ -125,6 +125,42 @@ class DefinitionVolatilityChangeFuture():
         return self.format_output(option_dummy_future_diff_lower_std)
 
 
+    # 通过在列表中填入将使用的变量类型，计算相应的变量
+    def varibles_type(self,
+                      cols_varible_type=[],  # 所使用变量的类型
+                      # 可选择范围  ['dV_future','rV_future','dV_future_mean','rV_future_mean','dV_future_std','dV_future_min','dV_future_max','rV_future_min','rV_future_max','dummy_future_diff_higher_std','dummy_future_diff_lower_std',]
+
+                      K=1,
+                      ):
+
+        VolatilityChange_s = {}
+
+        if 'dV_future' in cols_varible_type:
+            VolatilityChange_s['dV_future'] = self.dV_future()
+        if 'rV_future' in cols_varible_type:
+            VolatilityChange_s['rV_future'] = self.rV_future()
+        if 'dV_future_mean' in cols_varible_type:
+            VolatilityChange_s['dV_future_mean'] = self.dV_future_mean()
+        if 'rV_future_mean' in cols_varible_type:
+            VolatilityChange_s['rV_future_mean'] = self.rV_future_mean()
+        if 'dV_future_std' in cols_varible_type:
+            VolatilityChange_s['dV_future_std'] = self.dV_future_std()
+        if 'dV_future_min' in cols_varible_type:
+            VolatilityChange_s['dV_future_min'] = self.dV_future_min()
+        if 'dV_future_max' in cols_varible_type:
+            VolatilityChange_s['dV_future_max'] = self.dV_future_max()
+        if 'rV_future_min' in cols_varible_type:
+            VolatilityChange_s['rV_future_min'] = self.rV_future_min()
+        if 'rV_future_max' in cols_varible_type:
+            VolatilityChange_s['rV_future_max'] = self.rV_future_max()
+        if 'dummy_future_diff_higher_std' in cols_varible_type:
+            VolatilityChange_s['dummy_future_diff_higher_std'] = self.dummy_future_diff_higher_std(K=K)
+        if 'dummy_future_diff_lower_std' in cols_varible_type:
+            VolatilityChange_s['dummy_future_diff_lower_std'] = self.dummy_future_diff_lower_std(K=K)
+
+        return VolatilityChange_s
+
+
 
 
 

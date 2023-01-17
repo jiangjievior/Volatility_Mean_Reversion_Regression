@@ -113,7 +113,46 @@ class DefinitionVolatilityChangePast():
         mean_roll=self.option[self.col_iv].rolling(self.days_past).mean()
         option_dummy_past_diff_lower_std[self.col_iv] =(mean_roll-self.option[self.col_iv]>=K*std_roll)*1
         return self.format_output(option_dummy_past_diff_lower_std)
+    
+    
+    #通过在列表中填入将使用的变量类型，计算相应的变量
+    def varibles_type(self,
+                      cols_varible_type=[],#所使用变量的类型
+                                            #可选择范围  ['dV_past','rV_past','dV_past_mean','rV_past_mean','dV_past_std','dV_past_min','dV_past_max','rV_past_min','rV_past_max','dummy_past_diff_higher_std','dummy_past_diff_lower_std',]
+                      
+                      K=1,
+                      ):
+        
+        VolatilityChange_s={}
+        
+        if 'dV_past' in cols_varible_type:
+            VolatilityChange_s['dV_past']=self.dV_past()
+        if 'rV_past' in cols_varible_type:
+            VolatilityChange_s['rV_past'] = self.rV_past()
+        if 'dV_past_mean' in cols_varible_type:
+            VolatilityChange_s['dV_past_mean'] = self.dV_past_mean()
+        if 'rV_past_mean' in cols_varible_type:
+            VolatilityChange_s['rV_past_mean'] = self.rV_past_mean()
+        if 'dV_past_std' in cols_varible_type:
+            VolatilityChange_s['dV_past_std'] = self.dV_past_std()
+        if 'dV_past_min' in cols_varible_type:
+            VolatilityChange_s['dV_past_min'] = self.dV_past_min()
+        if 'dV_past_max' in cols_varible_type:
+            VolatilityChange_s['dV_past_max'] = self.dV_past_max()
+        if 'rV_past_min' in cols_varible_type:
+            VolatilityChange_s['rV_past_min'] = self.rV_past_min()
+        if 'rV_past_max' in cols_varible_type:
+            VolatilityChange_s['rV_past_max'] = self.rV_past_max()
+        if 'dummy_past_diff_higher_std' in cols_varible_type:
+            VolatilityChange_s['dummy_past_diff_higher_std'] = self.dummy_past_diff_higher_std(K=K)
+        if 'dummy_past_diff_lower_std' in cols_varible_type:
+            VolatilityChange_s['dummy_past_diff_lower_std'] = self.dummy_past_diff_lower_std(K=K)
+            
+        return VolatilityChange_s
+    
 
+
+    
 
 
 

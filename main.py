@@ -23,6 +23,7 @@ import os
 # from 项目文件.数据处理.获取期权隐含波动率的指定格式数据 import get_cross_vol, get_series_vol
 # from 项目文件.定义公用变量.计算过去波动率涨跌幅度 import DefinitionVolatilityChangePast
 #
+#
 # # 获取指定格式的截面数据
 # vol_cross = get_cross_vol(path_vol=PATH_VOL_SAMPLE, num_date=757, )
 # DVCP = DefinitionVolatilityChangePast(option=vol_cross, col_iv=['AAPL', 'SPX'])
@@ -42,7 +43,7 @@ import os
 # vol_series = get_series_vol(path_vol=PATH_VOL_SAMPLE, ticker='SPX', )
 # DVCP = DefinitionVolatilityChangePast(option=vol_series)
 # DVCP.dV_past()
-# DVCP.rV_past()
+# rV_past=DVCP.rV_past()
 # DVCP.dV_past_mean()
 # DVCP.rV_past_mean()
 # DVCP.dV_past_std()
@@ -91,12 +92,64 @@ import os
 # DVCP.dummy_future_diff_higher_std(K=1)
 # DVCP.dummy_future_diff_lower_std(K=1)
 
+########################################################################################################################
+#从截面数据的角度，拟合 波动率变化 与 波动率和均值的距离 之间的关系，并返回 每个交易日的拟合结果 及 总体结果的描述性统计分析
+########################################################################################################################
+# from 项目文件.模型拟合.拟合距离与波动率变化的关系 import CrossDistanceAndVolatilityChange
+# from 项目文件.修改输出结果的格式.修改_拟合距离与波动率变化的关系_输出结果格式 import reformat_OLS_Distance_and_VolChange_cross
+#
+# CDAVC=CrossDistanceAndVolatilityChange(PATH_VOL_SAMPLE=PATH_VOL_SAMPLE, num_date=757)
+# result_cross=CDAVC.run_OLS(past_Distance=['rV_past_mean','rV_past_mean'],
+#               future_VolChange=['rV_future_mean','rV_future'],
+#               )
+#
+# result_cross=reformat_OLS_Distance_and_VolChange_cross(result_cross)
+
+
+#-------------------------------------------------------
+#在计算 波动率变化 与 波动率和均值的距离 的窗口长度时，使用不同的交易日数量
+#-------------------------------------------------------
+# from 项目文件.模型拟合.拟合距离与波动率变化的关系 import CrossDistanceAndVolatilityChangeDifferentWindows
+# from 项目文件.修改输出结果的格式.修改_拟合距离与波动率变化的关系_输出结果格式 import reformat_OLS_Distance_and_VolChange_cross
+#
+# CDAVCDW=CrossDistanceAndVolatilityChangeDifferentWindows(PATH_VOL_SAMPLE=PATH_VOL_SAMPLE,
+#                                                          num_date=757,
+#                                                          days_past_windows=[30,60,100],
+#                                                          days_future_windows=[30,60,100],
+#                                                          )
+# result_cross=CDAVCDW.run_OLS(models=[['rV_past_mean','dV_past_std'],
+#                                     ['rV_future_mean','dV_future_std']],
+#                             )
+#
+# result_cross=reformat_OLS_Distance_and_VolChange_cross(result_cross)
+
+#-------------------------------------------------------
+#依据财务特征，或其他特征划分数据组，并进行OLS拟合
+#-------------------------------------------------------
+
+
+
+
+
+
+
+
+
+########################################################################################################################
+#从时间序列数据的角度，拟合 波动率变化 与 波动率和均值的距离 之间的关系
+########################################################################################################################
+from 项目文件.模型拟合.拟合距离与波动率变化的关系 import SeriesDistanceAndVolatilityChange
+
+#SDAVC=SeriesDistanceAndVolatilityChange()
+
+
+
 
 ########################################################################################################################
 #获取指定个股的财务数据
 ########################################################################################################################
-from 项目文件.数据处理.获取指定个股的财务数据 import get_finance_compy
-get_finance_compy()
+from 项目文件.数据处理.获取指定个股的财务数据 import finance_ratio_stock
+finance_ratio_stock()
 
 
 
