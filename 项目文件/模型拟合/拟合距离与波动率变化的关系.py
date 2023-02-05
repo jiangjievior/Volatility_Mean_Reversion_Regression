@@ -1,3 +1,4 @@
+# -*- coding:utf-8 -*-
 import pandas as pd
 import numpy as np
 import copy
@@ -28,13 +29,17 @@ class CrossDistanceAndVolatilityChange():
     def __init__(self,
                  PATH_VOL_SAMPLE=PATH_VOL_SAMPLE,
                  num_date=757,
-                 days_windows=[]
+                 days_past=30,#过去变量的移动窗口长度（天数）
+                 days_future=30,#未来变量的移动窗口长度（天数）
                  ):
         # 提取横截面数据
         self.option = get_cross_vol(path_vol=PATH_VOL_SAMPLE, num_date=num_date, )
 
         self.dates=list(self.option.index)
         self.stocks=list(self.option.columns)
+
+        self.days_past = days_past  # 过去变量的移动窗口长度（天数）
+        self.days_future = days_future  # 未来变量的移动窗口长度（天数）
 
         # 定义波动率的涨跌幅
         self.definate_varibles()
@@ -45,20 +50,27 @@ class CrossDistanceAndVolatilityChange():
     # 定义波动率的涨跌幅
     def definate_varibles(self):
         # 定义波动率过去的涨跌幅
-        self.define_varibles_past = DefinitionVolatilityChangePast(option=self.option, col_iv=self.stocks)
+        self.define_varibles_past = DefinitionVolatilityChangePast(option=self.option, col_iv=self.stocks,days_past=self.days_past)
 
         #定义波动率未来的涨跌幅
-        self.define_varibles_future = DefinitionVolatilityChangeFuture(option=self.option, col_iv=self.stocks)
+        self.define_varibles_future = DefinitionVolatilityChangeFuture(option=self.option, col_iv=self.stocks,days_future=self.days_future)
 
 
 
-    #用OLS对截面数据在每个交易日进行拟合
-    def OLS_Distance_and_VolChange_date(self,
+    #用OLS对截面数据在每个交易日依据每个特征进行拟合
+    def OLS_Distance_and_VolChange_date_character(self,
                                    Distance,
                                    VolChange,
                                    ):
 
+
+        # self.
+
+
         model, result, resid = OLS_model(X=Distance, Y=VolChange, summary=True, title_params=['X'])
+
+
+
         return result
 
 
@@ -75,7 +87,7 @@ class CrossDistanceAndVolatilityChange():
                 Y=data[f'{date}Y']
                 result=self.OLS_Distance_and_VolChange_date(Distance=X,VolChange=Y)
                 result_s[date]=result
-                print(f'用OLS拟合截面数据已经完成{date}')
+                print(f'用OLS拟合截面数据已经完成{date}的{title}')
 
             except:
                 continue
@@ -205,11 +217,84 @@ class CrossDistanceAndVolatilityChangeDifferentCharacters(CrossDistanceAndVolati
     def __init__(self,
                  PATH_VOL_SAMPLE=PATH_VOL_SAMPLE,
                  num_date=757,
+                 days_past=30,
+                 days_future=30,
                  ):
-        super(CrossDistanceAndVolatilityChangeDifferentCharacters,self).__init__(PATH_VOL_SAMPLE=PATH_VOL_SAMPLE,num_date=num_date)
+        super(CrossDistanceAndVolatilityChangeDifferentCharacters,self).__init__(PATH_VOL_SAMPLE=PATH_VOL_SAMPLE,
+                                                                                 num_date=num_date,
+                                                                                 days_past=days_past,
+                                                                                 days_future=days_future
+                                                                                 )
+
+
+    # 将特征数据在各个日期排序分组
+    def sort_characters_date(self,
+                        character,
+                        q=5,
+                        q_labels='',
+                        col_character='',
+                        ):
+        self.col_character=col_character#特征的名称
+        self.q_labels=np.arange(1, q + 1) if q_labels=='' else q_labels#组合标签
+        self.q = q  # 组合数量
+
+        character_qcut = []
+        for col in character.columns:
+            character_qcut.append(pd.qcut(character[col], q=self.q, labels=self.q_labels))
+        character_qcut = pd.DataFrame(character_qcut, index=character.columns,
+                                          columns=character.index).T
+
+        self.character_qcut=character_qcut
+
+
+    #依据特征，将期权数据进行分组排序
+    def sort_options_according_charactes(self):
+        pass
 
 
 
+
+
+
+    #用OLS对截面数据在每个交易日依据每个特征进行拟合
+    def OLS_Distance_and_VolChange_date_characters(self,
+                                   Distance,
+                                   VolChange,
+                                   ):
+
+        self.character_qcut
+
+
+        model, result, resid = OLS_model(X=Distance, Y=VolChange, summary=True, title_params=['X'])
+        return result
+
+    # 用OLS对截面数据在所有交易日进行拟合，并返回 每个交易日的拟合结果 及 总体结果的描述性统计分析
+    def OLS_Distance_and_VolChange_characters(self,
+                                   data,
+                                   title='',  # 本次运行的变量组合名称
+                                   ):
+
+        result_s = {}
+        for date in self.dates:
+            try:
+                X = data[f'{date}X']
+                Y = data[f'{date}Y']
+                result = self.OLS_Distance_and_VolChange_date_characters(Distance=X, VolChange=Y)
+                result_s[date] = result
+                print(f'用OLS拟合截面数据已经完成{date}的{title}')
+
+            except:
+                continue
+
+        result_s_ = pd.concat(result_s.values(), keys=result_s.keys())
+        result_s_ = result_s_.loc[pd.IndexSlice[:, 'X'], :]
+        result_s_ = pd.DataFrame(result_s_.values, columns=result_s_.columns,
+                                 index=result_s_.index.get_level_values(0))
+        result_s_.index.name = 'date'
+
+        result_s_describe = result_s_[['系数', '系数t值', '系数p值', '调整后R方']].describe()
+
+        return result_s_, result_s_describe
 
 
     def run_OLS(self,
@@ -230,35 +315,53 @@ class CrossDistanceAndVolatilityChangeDifferentCharacters(CrossDistanceAndVolati
                 #  ['dV_future','rV_future','dV_future_mean','rV_future_mean','dV_future_std','dV_future_min','dV_future_max','rV_future_min','rV_future_max','dummy_future_diff_higher_std','dummy_future_diff_lower_std',]
 
                 ):
+        self.character_qcut
         result_cross={}
 
+        # 依据要求计算定义的变量
+        self.varibles_future = self.define_varibles_future.varibles_type(cols_varible_type=list(set(models[1])))
+        self.varibles_past = self.define_varibles_past.varibles_type(cols_varible_type=list(set(models[0])))
 
-        for days_past,days_future in zip(self.days_past_windows,self.days_future_windows):
-            # 在指定的窗口长度上，定义波动率过去、未来的涨跌幅
-            self.define_varibles_past = DefinitionVolatilityChangePast(option=self.option, col_iv=self.stocks,days_past=days_past)
-            self.varibles_future = self.define_varibles_future.varibles_type(cols_varible_type=list(set(models[1])))
+        # 将X和Y的各个变量逐步配对，并使用OLS逐对拟合模型
+        result_cross = {}
+        for col_future, col_past in zip(models[1], models[0]):
+            title = f'{col_future} ~ {col_past}'
+            data_X = self.varibles_past[col_past].T
+            data_Y = self.varibles_future[col_future].T
 
-            self.define_varibles_future = DefinitionVolatilityChangeFuture(option=self.option, col_iv=self.stocks,days_future=days_future)
-            self.varibles_past = self.define_varibles_past.varibles_type(cols_varible_type=list(set(models[0])))
+            data_X.columns = data_X.columns.astype(str) + 'X'
+            data_Y.columns = data_Y.columns.astype(str) + 'Y'
+
+            data = pd.concat([data_X, data_Y], axis=1)
+            data = data.T.dropna().T
 
 
-            # 将X和Y的各个变量逐步配对，并使用OLS逐对拟合模型
-            # result_cross_windows = {}
-            for col_future, col_past in zip(models[1], models[0]):
-                title = f'{col_future}_{days_future} ~ {col_past}_{days_past}'
-                data_X = self.varibles_past[col_past].T
-                data_Y = self.varibles_future[col_future].T
 
-                data_X.columns = data_X.columns.astype(str) + 'X'
-                data_Y.columns = data_Y.columns.astype(str) + 'Y'
+            result_, result_describe = self.OLS_Distance_and_VolChange_characters(data=data, title=title)
 
-                data = pd.concat([data_X, data_Y], axis=1)
-                data = data.T.dropna().T
-                _, result_describe = self.OLS_Distance_and_VolChange(data=data, title=title)
-                result_cross[title] = result_describe
-
-        result_cross=pd.concat(result_cross.values(),keys=result_cross.keys(),axis=0)
+            result_cross[title] = [result_, result_describe]
 
         return result_cross
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

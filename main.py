@@ -1,3 +1,4 @@
+# -*- coding:utf-8 -*-
 from 数据文件.基本参数 import *
 import pandas as pd
 import numpy as np
@@ -126,6 +127,42 @@ import os
 #-------------------------------------------------------
 #依据财务特征，或其他特征划分数据组，并进行OLS拟合
 #-------------------------------------------------------
+from 项目文件.数据处理.获取指定个股的财务数据 import finance_ratio_stock
+from 项目文件.模型拟合.拟合距离与波动率变化的关系 import CrossDistanceAndVolatilityChangeDifferentCharacters
+from 项目文件.修改输出结果的格式.修改_拟合距离与波动率变化的关系_输出结果格式 import reformat_OLS_Distance_and_VolChange_cross
+
+CDAVCDW=CrossDistanceAndVolatilityChangeDifferentCharacters(PATH_VOL_SAMPLE=PATH_VOL_SAMPLE,
+                                                         num_date=757,
+                                                         days_past=30,
+                                                         days_future=30
+                                                         )
+
+#生成特征数据，用于将数据划分为不同小组合
+col_Characters='bm'#特征名称
+finance_ratio=finance_ratio_stock(
+    tickers=CDAVCDW.option.columns,
+    name_fin=[col_Characters],
+    dates=CDAVCDW.option.index,)
+finance_ratio=pd.pivot_table(finance_ratio,index=['date'],columns=['ticker'],values=[col_Characters])[col_Characters].T
+
+#依据特征数据的分组排序结果，对各个小组进行拟合
+q=5
+CDAVCDW.sort_characters_date(character=finance_ratio,q=q,col_character=col_Characters,q_labels=np.arange(1, q + 1))
+
+result_cross=CDAVCDW.run_OLS(models=[['rV_past_mean','dV_past_std'],
+                                    ['rV_future_mean','dV_future_std']],
+                            )
+
+result_cross=reformat_OLS_Distance_and_VolChange_cross(result_cross)
+
+
+
+
+
+
+
+
+
 
 
 

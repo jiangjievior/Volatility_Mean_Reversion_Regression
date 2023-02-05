@@ -7,7 +7,7 @@ PATH_FOLDER_VOL_SURFACE='F:\金融数据\美国个股期权隐含波动率曲面
 PATH_VOL_SURFACE_SPX="H:\美国个股期权隐含波动率曲面\SPX.csv"
 PATH_VOL_SAMPLE="H:\美国个股期权隐含波动率曲面\个股期权隐含波动率样本.csv"
 PATH_FINANCIAL="F:\金融数据\美国个股财务数据\美国月度个股财务数据.csv"
-PATH_FINANCIAL_RATIO="F:\金融数据\美国个股财务数据\美国月度个股财务比率数据.csv"
+PATH_FINANCIAL_RATIO="H:\美国个股财务数据\美国月度个股财务比率数据.csv"
 
 
 

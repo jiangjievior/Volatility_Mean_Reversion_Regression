@@ -6,8 +6,9 @@ from 数据文件.基本参数 import *
 
 #获取个股公司的财务比率
 def finance_ratio_stock(
-        tickers=[],
-        name_fin=[],
+        tickers=[],#股票名称
+        name_fin=[],#会计科目名称
+        dates=[],#交易日期
         # ['gvkey', 'permno', 'adate', 'qdate', 'public_date', 'CAPEI', 'bm',
         #  'evm', 'pe_op_basic', 'pe_op_dil', 'pe_exi', 'pe_inc', 'ps', 'pcf',
         #  'dpr', 'npm', 'opmbd', 'opmad', 'gpm', 'ptpm', 'cfm', 'roa', 'roe',
@@ -24,9 +25,23 @@ def finance_ratio_stock(
         #  'divyield', 'TICKER', 'cusip']
 ):
     finance_ratio=pd.read_csv(PATH_FINANCIAL_RATIO)
-    finance_ratio_=finance_ratio.loc[:,['TICKER', 'cusip', 'public_date']+name_fin]
+    finance_ratio=finance_ratio.loc[:,['TICKER', 'cusip', 'public_date']+name_fin]
 
-    return finance_ratio_.rename(columns={'TICKER':'ticker','public_date':'date'})
+    finance_ratio.rename(columns={'TICKER':'ticker','public_date':'date'},inplace=True)
+    finance_ratio
+
+    #剔除其他股票
+    bool_=finance_ratio['ticker'].apply(lambda x:True if x in tickers else False)
+    finance_ratio=finance_ratio.loc[bool_,:]
+
+    #剔除其他日期
+    bool_ = finance_ratio['date'].apply(lambda x: True if x in dates else False)
+    finance_ratio = finance_ratio.loc[bool_, :]
+
+
+
+
+    return finance_ratio.reset_index()
 
 
 
