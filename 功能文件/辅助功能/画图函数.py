@@ -181,6 +181,12 @@ def plot_cols(data,xlabel=None,ylabel=None,path_file=None,marker=True,len_xticks
     plt.grid(True,alpha=0.2)
     if save is not True:plt.savefig(path_file)
 
+if __name__=='__main__':
+    data = pd.DataFrame(np.random.random((100, 3)), index=np.arange(100), columns=['a', 'b', 'c'])
+    plot_cols(data, xlabel='指标', ylabel='指数')
+
+
+
 def plot_twins(data,col1,col2,xlabel=None,ylabel1=None,ylabel2=None,len_xticks=10,figsize=(10,6),save_path=None):
     """将含有两列的DataFrame表格数据作为双轴图
     :param data: DataFrame,含有两列的DataFrame表格数据
