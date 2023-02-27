@@ -58,7 +58,7 @@ class CrossDistanceAndVolatilityChange():
 
 
     #用OLS对截面数据在每个交易日依据每个特征进行拟合
-    def OLS_Distance_and_VolChange_date_character(self,
+    def OLS_Distance_and_VolChange_date(self,
                                    Distance,
                                    VolChange,
                                    ):
@@ -262,11 +262,9 @@ class CrossDistanceAndVolatilityChangeDifferentCharacters(CrossDistanceAndVolati
                                    VolChange,
                                    ):
 
-        self.character_qcut
 
-
-        model, result, resid = OLS_model(X=Distance, Y=VolChange, summary=True, title_params=['X'])
-        return result
+        model,params,tvalues,pvalues,resid,F,p_F,R_2 = OLS_model(X=Distance, Y=VolChange)
+        return model,params,tvalues,pvalues,resid,F,p_F,R_2
 
     # 用OLS对截面数据在所有交易日进行拟合，并返回 每个交易日的拟合结果 及 总体结果的描述性统计分析
     def OLS_Distance_and_VolChange_characters(self,
@@ -274,14 +272,45 @@ class CrossDistanceAndVolatilityChangeDifferentCharacters(CrossDistanceAndVolati
                                    title='',  # 本次运行的变量组合名称
                                    ):
 
-        result_s = {}
+        result_s = []
+        date_q_s=self.character_qcut.columns
+        for i in range(len(date_q_s)):
+            try:
+
+
+                if i==0:
+                    date_q=date_q_s[i]
+
+                    #挑选财务日期范围内的数据
+                    data_q=data.loc[:,data.columns<=date_q]
+
+
+
+                else:
+                    pass
+
+
+            except:
+                continue
+
+
+
+
+        result_s = []
         for date in self.dates:
             try:
-                X = data[f'{date}X']
-                Y = data[f'{date}Y']
-                result = self.OLS_Distance_and_VolChange_date_characters(Distance=X, VolChange=Y)
-                result_s[date] = result
-                print(f'用OLS拟合截面数据已经完成{date}的{title}')
+                character_qcut_date=self.character_qcut[date]
+                for q in self.q_labels:
+                    try:
+                        stock_q=character_qcut_date[character_qcut_date==q].index
+
+                        X = data.loc[stock_q,f'{date}X']
+                        Y = data.loc[stock_q,f'{date}Y']
+                        model,params,tvalues,pvalues,resid,F,p_F,R_2 = self.OLS_Distance_and_VolChange_date_characters(Distance=X, VolChange=Y)
+                        result_s.append([date,q,params,tvalues,pvalues,R_2])
+                    except:
+                        continue
+                    print(f'用OLS拟合截面数据已经完成{date}的{title}')
 
             except:
                 continue
@@ -315,33 +344,105 @@ class CrossDistanceAndVolatilityChangeDifferentCharacters(CrossDistanceAndVolati
                 #  ['dV_future','rV_future','dV_future_mean','rV_future_mean','dV_future_std','dV_future_min','dV_future_max','rV_future_min','rV_future_max','dummy_future_diff_higher_std','dummy_future_diff_lower_std',]
 
                 ):
-        self.character_qcut
-        result_cross={}
 
         # 依据要求计算定义的变量
         self.varibles_future = self.define_varibles_future.varibles_type(cols_varible_type=list(set(models[1])))
         self.varibles_past = self.define_varibles_past.varibles_type(cols_varible_type=list(set(models[0])))
 
         # 将X和Y的各个变量逐步配对，并使用OLS逐对拟合模型
-        result_cross = {}
+        result_cross = []
         for col_future, col_past in zip(models[1], models[0]):
             title = f'{col_future} ~ {col_past}'
-            data_X = self.varibles_past[col_past].T
-            data_Y = self.varibles_future[col_future].T
+            data_X = self.varibles_past[col_past].dropna()
+            data_Y = self.varibles_future[col_future].dropna()
 
-            data_X.columns = data_X.columns.astype(str) + 'X'
-            data_Y.columns = data_Y.columns.astype(str) + 'Y'
+            #对二者日期取交集，从而保留下来X和Y的共有数据
+            set_date=list(set(data_X.index).intersection(set(data_Y.index)))
+            data_X=data_X.loc[set_date,:]
+            data_Y = data_Y.loc[set_date, :]
 
-            data = pd.concat([data_X, data_Y], axis=1)
-            data = data.T.dropna().T
+            #将期权波动率数据按照财务表的日期范围进行切分
+            #由于财务表的日期为跨月度的日期，所以需要对波动率日度数据进行切分
+            date_q_s = self.character_qcut.columns
+            num=1#进度条总进程
+            for i in range(len(date_q_s)):
+                try:
+
+                    if i == 0:
+                        date_end = date_q_s[i]
+
+                        # 挑选财务日期范围内的数据
+                        data_X_Character_date = data_X.loc[data_X.index <= date_end,:]
+                        data_Y_Character_date = data_Y.loc[data_Y.index <= date_end,:]
+
+                    else:
+                        date_start = date_q_s[i-1]
+                        date_end = date_q_s[i ]
+
+                        # 挑选财务日期范围内的数据
+                        data_X_Character_date = data_X.loc[(data_X.index <= date_end)&(data_X.index > date_start), :]
+                        data_Y_Character_date = data_Y.loc[(data_X.index <= date_end)&(data_X.index > date_start), :]
 
 
 
-            result_, result_describe = self.OLS_Distance_and_VolChange_characters(data=data, title=title)
+                    #在每个交易日期拟合均值回复
+                    for date in data_X_Character_date.index:
+                        try:
+                            data_X_date=data_X_Character_date.loc[date,:]
+                            data_Y_date=data_Y_Character_date.loc[date,:]
 
-            result_cross[title] = [result_, result_describe]
 
-        return result_cross
+                            #依据财务指标对期权数据分组,并回归
+                            for q in self.q_labels:
+                                try:
+                                    stocks_q=self.character_qcut[date_end][self.character_qcut[date_end]==q].index
+                                    data_X_q=data_X_date[stocks_q]
+                                    data_Y_q = data_Y_date[stocks_q]
+
+                                    model, params, tvalues, pvalues, resid, F, p_F, R_2 = OLS_model(X=data_X_q,
+                                                                                                    Y=data_Y_q)
+                                    result_cross.append([date,title, q, params[-1], tvalues[-1], pvalues[-1], R_2])
+
+                                    #进度条展示
+                                    num_total=len(self.q_labels)*len(data_X_Character_date.index)*len(date_q_s)*len(list(zip(models[1], models[0])))
+                                    print(f'已经完成{title}的{date}在分组{q}的结果，已经完成任务{round(num/num_total,4)}')
+                                    num+=1
+
+                                except:
+                                    continue
+
+
+                        except:
+                            continue
+
+
+                except:
+                    continue
+
+        result_cross=pd.DataFrame(result_cross,columns=['date','title','quantitle','coef','t','p','R'])
+
+
+        result=pd.pivot_table(result_cross.loc[result_cross['title']=='rV_future_mean ~ rV_past_mean',:]
+                              ,index=['quantitle'],values=['coef','t','p','R'])
+
+        return result
+
+
+
+
+            # data_X.columns = data_X.columns.astype(str) + 'X'
+            # data_Y.columns = data_Y.columns.astype(str) + 'Y'
+
+        #     data = pd.concat([data_X, data_Y], axis=1)
+        #     data = data.T.dropna().T
+        #
+        #
+        #
+        #     result_, result_describe = self.OLS_Distance_and_VolChange_characters(data=data, title=title)
+        #
+        #     result_cross[title] = [result_, result_describe]
+        #
+        # return result_cross
 
 
 

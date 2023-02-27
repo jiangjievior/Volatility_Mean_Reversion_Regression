@@ -100,8 +100,8 @@ import os
 # from 项目文件.修改输出结果的格式.修改_拟合距离与波动率变化的关系_输出结果格式 import reformat_OLS_Distance_and_VolChange_cross
 #
 # CDAVC=CrossDistanceAndVolatilityChange(PATH_VOL_SAMPLE=PATH_VOL_SAMPLE, num_date=757)
-# result_cross=CDAVC.run_OLS(past_Distance=['rV_past_mean','rV_past_mean'],
-#               future_VolChange=['rV_future_mean','rV_future'],
+# result_cross=CDAVC.run_OLS(models=[['rV_past_mean','dV_past_std'],
+#                         ['rV_future_mean','dV_future_std']]
 #               )
 #
 # result_cross=reformat_OLS_Distance_and_VolChange_cross(result_cross)
@@ -131,6 +131,7 @@ from 项目文件.数据处理.获取指定个股的财务数据 import finance_
 from 项目文件.模型拟合.拟合距离与波动率变化的关系 import CrossDistanceAndVolatilityChangeDifferentCharacters
 from 项目文件.修改输出结果的格式.修改_拟合距离与波动率变化的关系_输出结果格式 import reformat_OLS_Distance_and_VolChange_cross
 
+
 CDAVCDW=CrossDistanceAndVolatilityChangeDifferentCharacters(PATH_VOL_SAMPLE=PATH_VOL_SAMPLE,
                                                          num_date=757,
                                                          days_past=30,
@@ -149,8 +150,8 @@ finance_ratio=pd.pivot_table(finance_ratio,index=['date'],columns=['ticker'],val
 q=5
 CDAVCDW.sort_characters_date(character=finance_ratio,q=q,col_character=col_Characters,q_labels=np.arange(1, q + 1))
 
-result_cross=CDAVCDW.run_OLS(models=[['rV_past_mean','dV_past_std'],
-                                    ['rV_future_mean','dV_future_std']],
+result_cross=CDAVCDW.run_OLS(models=[['dV_past_mean'],
+                                    ['dV_future']],
                             )
 
 result_cross=reformat_OLS_Distance_and_VolChange_cross(result_cross)
@@ -160,9 +161,13 @@ result_cross=reformat_OLS_Distance_and_VolChange_cross(result_cross)
 
 
 
+########################################################################################################################
+#从截面数据的角度，拟合 过去波动率变化 与 未来波动率回复的概率 之间的关系，并返回 每个交易日的拟合结果 及 总体结果的描述性统计分析
+########################################################################################################################
 
-
-
+#-------------------------------------------------------
+#在不同的特征下，过去波动率变化 与 未来波动率的不同回复程度的概率 之间关系
+#-------------------------------------------------------
 
 
 
