@@ -9,7 +9,7 @@ PATH_VOL_SAMPLE="H:\美国个股期权隐含波动率曲面\个股期权隐含�
 PATH_FINANCIAL="F:\金融数据\美国个股财务数据\美国月度个股财务数据.csv"
 PATH_FINANCIAL_RATIO="H:\美国个股财务数据\美国月度个股财务比率数据.csv"
 PATH_SPX='H:\美国个股数据\个股数据\SPX.csv'
-
+PATH_VOL_main="H:\美国个股期权隐含波动率曲面\put&delta50&days30.csv"#主要的个股期权隐含波动率曲面
 
 
 

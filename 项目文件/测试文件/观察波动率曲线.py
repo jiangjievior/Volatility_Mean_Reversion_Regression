@@ -4,6 +4,22 @@ import pandas as pd
 import numpy as np
 import os
 
+
+
+PATH_VOL_IN=r'F:\金融数据\美国个股期权隐含波动率曲面\volatility_surface_in_of_moneyness\volatility_surface_in_of_moneyness.csv'
+volatility=pd.read_csv(PATH_VOL_IN,iterator=True,chunksize=40000)
+
+for vol in volatility:
+    vol
+
+
+
+
+
+
+
+
+
 surface=pd.read_csv(PATH_VOL_SURFACE_SPX)
 surface
 surface_days_delta=surface[(surface['days']==30)&(surface['delta']==50)]

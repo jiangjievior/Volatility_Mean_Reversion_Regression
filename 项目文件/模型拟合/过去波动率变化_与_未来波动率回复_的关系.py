@@ -7,6 +7,7 @@ from pandas import DataFrame
 
 from 功能文件.模型拟合.拟合OLS模型 import OLS_model
 from 数据文件.基本参数 import PATH_VOL_SAMPLE
+from 项目文件.数据处理.获取指定个股的财务数据 import finance_ratio_stock
 from 项目文件.数据处理.获取期权隐含波动率的指定格式数据 import get_cross_vol, get_series_vol
 from 项目文件.定义公用变量.计算过去波动率涨跌幅度 import DefinitionVolatilityChangePast
 from 项目文件.定义公用变量.计算未来波动率涨跌幅度 import DefinitionVolatilityChangeFuture
@@ -248,8 +249,21 @@ class CrossDistanceAndVolatilityChangeDifferentCharacters(CrossDistanceAndVolati
 
 
     #依据特征，将期权数据进行分组排序
-    def sort_options_according_charactes(self):
-        pass
+    def sort_options_according_charactes(self,
+                                         col_Characters='roe',  # 特征名称
+                                         q=5,#分组数
+                                         ):
+        # 生成特征数据，用于将数据划分为不同小组合
+        finance_ratio = finance_ratio_stock(
+            tickers=self.option.columns,
+            name_fin=[col_Characters],
+            dates=self.option.index, )
+        finance_ratio = pd.pivot_table(finance_ratio, index=['date'], columns=['ticker'], values=[col_Characters])[
+            col_Characters].T
+
+        # 依据特征数据的分组排序结果，对各个小组进行拟合
+        self.sort_characters_date(character=finance_ratio, q=q, col_character=col_Characters,
+                                     q_labels=np.arange(1, q + 1))
 
 
 
@@ -422,7 +436,7 @@ class CrossDistanceAndVolatilityChangeDifferentCharacters(CrossDistanceAndVolati
         result_cross=pd.DataFrame(result_cross,columns=['date','title','quantitle','coef','t','p','R'])
 
 
-        result=pd.pivot_table(result_cross.loc[result_cross['title']=='rV_future_mean ~ rV_past_mean',:]
+        result=pd.pivot_table(result_cross
                               ,index=['quantitle'],values=['coef','t','p','R'])
 
         return result
