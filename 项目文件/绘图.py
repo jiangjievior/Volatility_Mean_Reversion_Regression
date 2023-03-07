@@ -8,7 +8,7 @@ import seaborn as sns
 from 功能文件.辅助功能.Debug时获取外部数据绝对路径 import data_real_path
 from 数据文件.基本参数 import PATH_VOL_SAMPLE
 from 项目文件.定义公用变量.计算过去波动率涨跌幅度 import DefinitionVolatilityChangePast
-from 项目文件.模型拟合.拟合距离与波动率变化的关系 import CrossDistanceAndVolatilityChangeDifferentCharacters
+from 项目文件.模型拟合.过去波动率变化_与_未来波动率回复_的关系 import CrossDistanceAndVolatilityChangeDifferentCharacters
 
 
 plt.rcParams['font.sans-serif']=['simhei']#用于正常显示中文标签

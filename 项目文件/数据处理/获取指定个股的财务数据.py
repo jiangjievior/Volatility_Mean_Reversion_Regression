@@ -31,7 +31,7 @@ def finance_ratio_stock(
     finance_ratio
 
     #剔除其他股票
-    bool_=finance_ratio['ticker'].apply(lambda x:True if x in tickers else False)
+    bool_=finance_ratio['cusip'].apply(lambda x:True if x in tickers else False)
     finance_ratio=finance_ratio.loc[bool_,:]
 
     #剔除其他日期

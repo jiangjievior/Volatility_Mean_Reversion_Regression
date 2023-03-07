@@ -34,7 +34,9 @@ class CrossDistanceAndVolatilityChange():
                  days_future=30,#未来变量的移动窗口长度（天数）
                  ):
         # 提取横截面数据
-        self.option = get_cross_vol(path_vol=PATH_VOL_SAMPLE, num_date=num_date, )
+        self.option = get_cross_vol(path_vol=PATH_VOL_SAMPLE)
+
+        self.titile=PATH_VOL_SAMPLE#文件名称
 
         self.dates=list(self.option.index)
         self.stocks=list(self.option.columns)
@@ -84,11 +86,17 @@ class CrossDistanceAndVolatilityChange():
         result_s={}
         for date in self.dates:
             try:
-                X=data[f'{date}X']
-                Y=data[f'{date}Y']
+                X=data[f'{date}X'].dropna()
+                Y=data[f'{date}Y'].dropna()
+
+                #保留X和Y的共有股票数据
+                stocks_common=set(X.index).intersection(set(Y.index))
+                X=X[stocks_common]
+                Y = Y[stocks_common]
+
                 result=self.OLS_Distance_and_VolChange_date(Distance=X,VolChange=Y)
                 result_s[date]=result
-                print(f'用OLS拟合截面数据已经完成{date}的{title}')
+                print(f'{self.titile}\n拟合截面数据已经完成{date}的{title}')
 
             except:
                 continue
@@ -163,8 +171,8 @@ class CrossDistanceAndVolatilityChangeDifferentWindows(CrossDistanceAndVolatilit
 
 
     def run_OLS(self,
-                models=[['rV_past_mean'],
-                        ['rV_future_mean']],
+                models=[['rV_past_mean', 'dV_past_std'],
+                        ['rV_future_mean', 'dV_future_std']],
                 #拟合时，代使用的模型，即 X 与 Y 的一一对应关系
                 #其中第一个列表为X，第二列表为Y
 
@@ -181,35 +189,208 @@ class CrossDistanceAndVolatilityChangeDifferentWindows(CrossDistanceAndVolatilit
 
                 ):
         result_cross={}
-
+        result_s={}
 
         for days_past,days_future in zip(self.days_past_windows,self.days_future_windows):
-            # 在指定的窗口长度上，定义波动率过去、未来的涨跌幅
-            self.define_varibles_past = DefinitionVolatilityChangePast(option=self.option, col_iv=self.stocks,days_past=days_past)
-            self.varibles_future = self.define_varibles_future.varibles_type(cols_varible_type=list(set(models[1])))
+            try:
+                # 在指定的窗口长度上，定义波动率过去、未来的涨跌幅
+                self.define_varibles_past = DefinitionVolatilityChangePast(option=self.option, col_iv=self.stocks,days_past=days_past)
+                self.varibles_future = self.define_varibles_future.varibles_type(cols_varible_type=list(set(models[1])))
 
-            self.define_varibles_future = DefinitionVolatilityChangeFuture(option=self.option, col_iv=self.stocks,days_future=days_future)
-            self.varibles_past = self.define_varibles_past.varibles_type(cols_varible_type=list(set(models[0])))
+                self.define_varibles_future = DefinitionVolatilityChangeFuture(option=self.option, col_iv=self.stocks,days_future=days_future)
+                self.varibles_past = self.define_varibles_past.varibles_type(cols_varible_type=list(set(models[0])))
 
 
-            # 将X和Y的各个变量逐步配对，并使用OLS逐对拟合模型
-            # result_cross_windows = {}
-            for col_future, col_past in zip(models[1], models[0]):
-                title = f'{col_future}_{days_future} ~ {col_past}_{days_past}'
-                data_X = self.varibles_past[col_past].T
-                data_Y = self.varibles_future[col_future].T
+                # 将X和Y的各个变量逐步配对，并使用OLS逐对拟合模型
+                # result_cross_windows = {}
+                for col_future, col_past in zip(models[1], models[0]):
+                    try:
+                        title = f'{col_future}_{days_future} ~ {col_past}_{days_past}'
+                        data_X = self.varibles_past[col_past].T
+                        data_Y = self.varibles_future[col_future].T
 
-                data_X.columns = data_X.columns.astype(str) + 'X'
-                data_Y.columns = data_Y.columns.astype(str) + 'Y'
+                        data_X.columns = data_X.columns.astype(str) + 'X'
+                        data_Y.columns = data_Y.columns.astype(str) + 'Y'
 
-                data = pd.concat([data_X, data_Y], axis=1)
-                data = data.T.dropna().T
-                _, result_describe = self.OLS_Distance_and_VolChange(data=data, title=title)
-                result_cross[title] = result_describe
+                        data = pd.concat([data_X, data_Y], axis=1)
+                        #data = data.T.dropna().T
+                        result, result_describe = self.OLS_Distance_and_VolChange(data=data, title=title)
+                        result_cross[title] = result_describe
+                        result_s[title]=result
+                    except:
+                        continue
+            except:
+                continue
 
         result_cross=pd.concat(result_cross.values(),keys=result_cross.keys(),axis=0)
 
-        return result_cross
+        return result_s,result_cross
+
+
+#基于历史波动率不同的上涨幅度或下跌幅度，在不同的过去未来窗口上，波动率均值回复特征回归结果
+class MeanReversionRegressionDifferentWindowsDifferentVolatilityChange():
+
+    def __init__(self,
+                 PATH_VOL_S,
+                 models=[['rV_past_mean', 'dV_past_std'],
+                         ['rV_future_mean', 'dV_future_std']],
+                 days_past_windows=[30,60,100,200],#各种过去变量的滑动窗口长度
+                 days_future_windows=[30,60,100,200],#各种未来变量的滑动窗口长度
+                 nodes=[0.1, 0.3, 0.5, 0.7],#划分样本时所使用的分位数节点
+                 ):
+        self.PATH_VOL_S=PATH_VOL_S
+        self.models=models
+        self.nodes=nodes
+        self.days_past_windows=days_past_windows
+        self.days_future_windows = days_future_windows
+
+    def run_OLS(self,
+                #拟合时，代使用的模型，即 X 与 Y 的一一对应关系
+                #其中第一个列表为X，第二列表为Y
+
+                #例如：
+                # [['rV_past_mean', 'dV_past_std'],
+                # ['rV_future_mean', 'dV_future_std']]将会产生 'rV_past_mean'~'rV_future_mean' 和 'dV_past_std'~'dV_future_std' 的对应关系
+
+                # 波动率距离均值距离 的 变量类型 可选择范围
+                #  ['dV_past', 'rV_past', 'dV_past_mean', 'rV_past_mean', 'dV_past_std', 'dV_past_min',
+                #  'dV_past_max', 'rV_past_min', 'rV_past_max', 'dummy_past_diff_higher_std',
+                #  'dummy_past_diff_lower_std', ]
+                # 未来波动率变化 的 变量类型 可选择范围
+                #  ['dV_future','rV_future','dV_future_mean','rV_future_mean','dV_future_std','dV_future_min','dV_future_max','rV_future_min','rV_future_max','dummy_future_diff_higher_std','dummy_future_diff_lower_std',]
+
+                ):
+        result_cross_s=[]#详细回归结果
+
+        #读取不同类型的波动率曲面数据
+        for key in self.PATH_VOL_S.keys():
+            try:
+                # 提取横截面数据
+                self.option = get_cross_vol(path_vol=self.PATH_VOL_S[key])
+                # 文件名称
+                self.titile = self.PATH_VOL_S[key]
+                self.put_call=key.split('&')[0]
+                self.delta=int(key.split('&')[1][-2:])
+                self.days_to_maturity=int(key.split('&')[2][-2:])
+
+                #交易日期
+                self.dates = list(self.option.index)
+                #可交易股票名称
+                self.stocks = list(self.option.columns)
+
+                #运行不同的窗口长度的数据
+                for days_past,days_future in zip(self.days_past_windows,self.days_future_windows):
+                    try:
+                        # 在指定的窗口长度上，定义波动率过去、未来的涨跌幅
+                        self.define_varibles_past = DefinitionVolatilityChangePast(option=self.option, col_iv=self.stocks,days_past=days_past)
+                        self.varibles_past = self.define_varibles_past.varibles_type(
+                            cols_varible_type=list(set(self.models[0])))
+
+                        self.define_varibles_future = DefinitionVolatilityChangeFuture(option=self.option, col_iv=self.stocks,days_future=days_future)
+                        self.varibles_future = self.define_varibles_future.varibles_type(
+                            cols_varible_type=list(set(self.models[1])))
+
+                        # 将X和Y的各个变量逐步配对，并使用OLS逐对拟合模型
+                        for col_future, col_past in zip(self.models[1], self.models[0]):
+                            try:
+                                title = f'{col_future}_{days_future} ~ {col_past}_{days_past}'
+                                data_X = self.varibles_past[col_past].T
+                                data_Y = self.varibles_future[col_future].T
+
+                                data_X.columns = data_X.columns.astype(str) + 'X'
+                                data_Y.columns = data_Y.columns.astype(str) + 'Y'
+
+                                data = pd.concat([data_X, data_Y], axis=1)
+                                # result_s = {}
+
+                                #在不同的交易日上，拟合不同的结果
+                                for date in self.dates:
+                                    try:
+                                        X = data[f'{date}X'].dropna()
+                                        Y = data[f'{date}Y'].dropna()
+
+                                        # 保留X和Y的共有股票数据
+                                        stocks_common = set(X.index).intersection(set(Y.index))
+                                        X = X[stocks_common]
+                                        Y = Y[stocks_common]
+
+                                        #将数据划分为不同节点
+                                        #nodes=[0.1,0.3,0.5,0.7]#分位数节点
+                                        
+                                        X_up=X[X>0]
+                                        for node in self.nodes:
+                                            try:
+                                                quantitle_X_up_node=X_up.quantile(node)
+                                                X_up_node=X_up[X_up>quantitle_X_up_node]
+                                                Y_up_node=Y[X_up_node.index]
+                                                model, params, tvalues, pvalues, resid, F, p_F, R_2 = OLS_model(X_up_node,Y_up_node)
+
+                                                result_cross_s.append(
+                                                    [self.put_call, self.delta, self.days_to_maturity, col_past,
+                                                     days_past, col_future, days_future, date, 'up', node] +
+                                                    params[1] + tvalues[1] + pvalues[1] + [R_2])
+                                            except:
+                                                continue
+
+                                        X_down = -X[X <0 ]
+                                        for node in self.nodes:
+                                            try:
+                                                quantitle_X_down_node = X_down.quantile(node)
+                                                X_down_node = X_down[X_down > quantitle_X_down_node]
+                                                Y_down_node = Y[X_down_node.index]
+                                                model, params, tvalues, pvalues, resid, F, p_F, R_2 = OLS_model(
+                                                    -X_down_node, Y_down_node)
+
+                                                result_cross_s.append(
+                                                    [self.put_call,self.delta,self.days_to_maturity,col_past,days_past,col_future,days_future,date,'down',node] +
+                                                                      params[1] + tvalues[1] + pvalues[1] + [R_2])
+                                            except:
+                                                continue
+                                        
+
+                                        print(f'{self.titile}\n拟合截面数据已经完成{date}的{title}')
+
+                                    except:
+                                        continue
+
+
+
+                            except:
+                                continue
+                    except:
+                        continue
+            except:
+                continue
+
+        result_cross = pd.DataFrame(result_cross_s,
+                                      columns=['put_call', 'delta', 'days', 'col_past', 'days_past', 'col_future',
+                                               'days_future', 'date', 'down', 'node', 'params', 't', 'p', 'R'])
+
+        return result_cross_s
+
+    #生成数据节点，用以数据分组
+    def node(self,
+             data,#np.array()
+             type, #节点类型
+             num=5,#节点个数
+             ):
+
+        #按照数据的百分比分位数，产生节点
+        if type=='quant_q':
+            nodes=pd.DataFrame(data).quantile(q=np.arange(0,1,1/5))[0].tolist()
+            return nodes
+
+        #按照绝对
+        elif type=='absolute':
+            pass
+
+
+
+
+
+
+
+        pass
 
 
 #从截面数据的角度，依据不同特征，拟合 波动率变化 与 波动率和均值的距离 之间的关系
@@ -258,7 +439,7 @@ class CrossDistanceAndVolatilityChangeDifferentCharacters(CrossDistanceAndVolati
             tickers=self.option.columns,
             name_fin=[col_Characters],
             dates=self.option.index, )
-        finance_ratio = pd.pivot_table(finance_ratio, index=['date'], columns=['ticker'], values=[col_Characters])[
+        finance_ratio = pd.pivot_table(finance_ratio, index=['date'], columns=['cusip'], values=[col_Characters])[
             col_Characters].T
 
         # 依据特征数据的分组排序结果，对各个小组进行拟合
@@ -367,8 +548,8 @@ class CrossDistanceAndVolatilityChangeDifferentCharacters(CrossDistanceAndVolati
         result_cross = []
         for col_future, col_past in zip(models[1], models[0]):
             title = f'{col_future} ~ {col_past}'
-            data_X = self.varibles_past[col_past].dropna()
-            data_Y = self.varibles_future[col_future].dropna()
+            data_X = self.varibles_past[col_past]
+            data_Y = self.varibles_future[col_future]
 
             #对二者日期取交集，从而保留下来X和Y的共有数据
             set_date=list(set(data_X.index).intersection(set(data_Y.index)))
@@ -397,21 +578,23 @@ class CrossDistanceAndVolatilityChangeDifferentCharacters(CrossDistanceAndVolati
                         data_X_Character_date = data_X.loc[(data_X.index <= date_end)&(data_X.index > date_start), :]
                         data_Y_Character_date = data_Y.loc[(data_X.index <= date_end)&(data_X.index > date_start), :]
 
-
-
                     #在每个交易日期拟合均值回复
                     for date in data_X_Character_date.index:
                         try:
                             data_X_date=data_X_Character_date.loc[date,:]
                             data_Y_date=data_Y_Character_date.loc[date,:]
 
-
                             #依据财务指标对期权数据分组,并回归
                             for q in self.q_labels:
                                 try:
                                     stocks_q=self.character_qcut[date_end][self.character_qcut[date_end]==q].index
-                                    data_X_q=data_X_date[stocks_q]
-                                    data_Y_q = data_Y_date[stocks_q]
+                                    data_X_q=data_X_date[stocks_q].dropna()
+                                    data_Y_q = data_Y_date[stocks_q].dropna()
+
+                                    #保留X和Y的共有股票
+                                    stocks_common=set(data_X_q.index).intersection(set(data_Y_q.index))
+                                    data_X_q=data_X_q[stocks_common]
+                                    data_Y_q=data_Y_q[stocks_common]
 
                                     model, params, tvalues, pvalues, resid, F, p_F, R_2 = OLS_model(X=data_X_q,
                                                                                                     Y=data_Y_q)
@@ -424,20 +607,14 @@ class CrossDistanceAndVolatilityChangeDifferentCharacters(CrossDistanceAndVolati
 
                                 except:
                                     continue
-
-
                         except:
                             continue
-
-
                 except:
                     continue
 
         result_cross=pd.DataFrame(result_cross,columns=['date','title','quantitle','coef','t','p','R'])
 
-
-        result=pd.pivot_table(result_cross
-                              ,index=['quantitle'],values=['coef','t','p','R'])
+        result=pd.pivot_table(result_cross,index=['quantitle'],values=['coef','t','p','R'])
 
         return result
 
