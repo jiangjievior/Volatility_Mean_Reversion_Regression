@@ -245,6 +245,7 @@ class MeanReversionRegressionDifferentWindowsDifferentVolatilityChange():
         self.days_future_windows = days_future_windows
 
     def run_OLS(self,
+                path_save
                 #拟合时，代使用的模型，即 X 与 Y 的一一对应关系
                 #其中第一个列表为X，第二列表为Y
 
@@ -328,7 +329,7 @@ class MeanReversionRegressionDifferentWindowsDifferentVolatilityChange():
                                                 result_cross_s.append(
                                                     [self.put_call, self.delta, self.days_to_maturity, col_past,
                                                      days_past, col_future, days_future, date, 'up', node] +
-                                                    params[1] + tvalues[1] + pvalues[1] + [R_2])
+                                                    [params[1] , tvalues[1] , pvalues[1] , R_2])
                                             except:
                                                 continue
 
@@ -343,7 +344,7 @@ class MeanReversionRegressionDifferentWindowsDifferentVolatilityChange():
 
                                                 result_cross_s.append(
                                                     [self.put_call,self.delta,self.days_to_maturity,col_past,days_past,col_future,days_future,date,'down',node] +
-                                                                      params[1] + tvalues[1] + pvalues[1] + [R_2])
+                                                                      [params[1] , tvalues[1] , pvalues[1] , R_2])
                                             except:
                                                 continue
                                         
@@ -366,7 +367,11 @@ class MeanReversionRegressionDifferentWindowsDifferentVolatilityChange():
                                       columns=['put_call', 'delta', 'days', 'col_past', 'days_past', 'col_future',
                                                'days_future', 'date', 'down', 'node', 'params', 't', 'p', 'R'])
 
-        return result_cross_s
+        result_cross.to_csv(path_save
+                            ,encoding='utf_8_sig',index=False)
+
+
+        return result_cross
 
     #生成数据节点，用以数据分组
     def node(self,

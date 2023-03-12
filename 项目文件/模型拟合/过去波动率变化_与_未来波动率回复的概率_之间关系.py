@@ -121,7 +121,7 @@ def describe_probability_volatility_MeanReversion(
 
 
     result=pd.pivot_table(result,index=['window_future','volatility_change_past'],columns=['delta','volatility_change_future'],values=['probability'])['probability']
-    result=result.loc[pd.IndexSlice[:,:],pd.IndexSlice[[10,50,90],:]].round(3)
+    result=result.loc[pd.IndexSlice[:,:],pd.IndexSlice[[10,30,50,60,90],:]].round(3)
     result.to_excel(path_save)
 
 

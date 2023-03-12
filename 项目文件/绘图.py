@@ -6,7 +6,7 @@ import numpy as np
 import seaborn as sns
 
 from 功能文件.辅助功能.Debug时获取外部数据绝对路径 import data_real_path
-from 数据文件.基本参数 import PATH_VOL_SAMPLE
+from 数据文件.基本参数 import PATH_VOL_SAMPLE, PATH_VOL_S
 from 项目文件.定义公用变量.计算过去波动率涨跌幅度 import DefinitionVolatilityChangePast
 from 项目文件.模型拟合.过去波动率变化_与_未来波动率回复_的关系 import CrossDistanceAndVolatilityChangeDifferentCharacters
 
@@ -41,19 +41,19 @@ def plt_dist(
 from 项目文件.数据处理.获取期权隐含波动率的指定格式数据 import get_cross_vol, get_series_vol
 
 # 获取指定格式的截面数据
-CDAVCDW=CrossDistanceAndVolatilityChangeDifferentCharacters(PATH_VOL_SAMPLE=PATH_VOL_SAMPLE,
+CDAVCDW=CrossDistanceAndVolatilityChangeDifferentCharacters(PATH_VOL_SAMPLE=PATH_VOL_S['put&delta50&days30'],
                                                          num_date=757,
                                                          days_past=30,
                                                          days_future=30
                                                          )
 
 # 依据要求计算定义的变量
-models=['rV_past_mean','rV_future_mean']
+models=['rV_past_mean','rV_future']
 varibles_future = CDAVCDW.define_varibles_future.varibles_type(cols_varible_type=models[1])
 varibles_past = CDAVCDW.define_varibles_past.varibles_type(cols_varible_type=models[0])
 
-data_X = varibles_past[models[0]].dropna()
-data_Y = varibles_future[models[1]].dropna()
+data_X = varibles_past[models[0]]
+data_Y = varibles_future[models[1]]
 
 #对二者日期取交集，从而保留下来X和Y的共有数据
 set_date=list(set(data_X.index).intersection(set(data_Y.index)))
@@ -111,7 +111,7 @@ data_Y = data_Y.loc[set_date, :]
 #3.绘制不同交易日跨期的 过去波动率上涨幅度 与 未来波动率下跌幅度概率密度分布 之间的曲线关系
 
 results=[]
-for base_line in np.arange(0,1,step=0.1):
+for base_line in np.arange(0,1,step=0.01):
     positive_change_volatility=[]
     for col in data_X.columns:
         X_positive=data_X[col][data_X[col]>base_line]

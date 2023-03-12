@@ -5,6 +5,8 @@ import pandas as pd
 import numpy as np
 import os
 
+from 项目文件.修改输出结果的格式.修改_基于历史波动率不同的上涨幅度或下跌幅度的回归结果 import \
+    reformat_regression_mean_reversion_different_volatility_change
 from 项目文件.模型拟合.过去波动率变化_与_未来波动率回复的概率_之间关系 import \
     volatility_multiple_dimension_probability_mean_reversion, describe_probability_volatility_MeanReversion
 from 项目文件.绘图.绘制波动率均值回复概率图 import plot_probability_MeanReversion
@@ -185,28 +187,29 @@ from 项目文件.绘图.绘制波动率均值回复概率图 import plot_probab
 #-------------------------------------------------------
 #基于历史波动率不同的上涨幅度或下跌幅度，在不同的过去未来窗口上，波动率均值回复特征回归结果
 #-------------------------------------------------------
-# from 项目文件.模型拟合.过去波动率变化_与_未来波动率回复_的关系 import MeanReversionRegressionDifferentWindowsDifferentVolatilityChange
-# from 项目文件.模型拟合.过去波动率变化_与_未来波动率回复的概率_之间关系 import \
-#     volatility_multiple_dimension_probability_mean_reversion, describe_probability_volatility_MeanReversion
-# from 项目文件.绘图.绘制波动率均值回复概率图 import plot_probability_MeanReversion
-#
-# MRRDWD=MeanReversionRegressionDifferentWindowsDifferentVolatilityChange(
-#                  PATH_VOL_S,
-#                  models=[['rV_past_mean', 'dV_past_std'],
-#                          ['rV_future_mean', 'dV_future_std']],
-#                  days_past_windows=[30,60,100,200],#各种过去变量的滑动窗口长度
-#                  days_future_windows=[30,60,100,200],#各种未来变量的滑动窗口长度
-#                  )
-#
-# MRRDWD.node(data=np.random.random(size=2000),
-#             type='quant_q',
-#             num=5
-#             )
-#
-#
-# MRRDWD.run_OLS()
+from 项目文件.模型拟合.过去波动率变化_与_未来波动率回复_的关系 import MeanReversionRegressionDifferentWindowsDifferentVolatilityChange
+from 项目文件.模型拟合.过去波动率变化_与_未来波动率回复的概率_之间关系 import \
+    volatility_multiple_dimension_probability_mean_reversion, describe_probability_volatility_MeanReversion
+from 项目文件.绘图.绘制波动率均值回复概率图 import plot_probability_MeanReversion
+
+MRRDWD=MeanReversionRegressionDifferentWindowsDifferentVolatilityChange(
+                 PATH_VOL_S,
+                 models=[['rV_past_mean'],
+                         ['rV_future']],
+                 days_past_windows=[30,60,100],#各种过去变量的滑动窗口长度
+                 days_future_windows=[30,60,100],#各种未来变量的滑动窗口长度
+                 )
+
+MRRDWD.node(data=np.random.random(size=2000),
+            type='quant_q',
+            num=5
+            )
 
 
+MRRDWD.run_OLS(path_save='数据文件\生成数据\均值回复回归'+'\不同涨跌幅下的均值回复回归结果.csv')
+
+#CP:put》delta》days:30》col_past:rV_past_mean》days_past》days_future》date》down:up》node》params
+reformat_regression_mean_reversion_different_volatility_change()
 
 
 #-------------------------------------------------------
@@ -258,10 +261,10 @@ from 项目文件.绘图.绘制波动率均值回复概率图 import plot_probab
 #                                '多维均值回复概率表.csv')
 # )
 #
-# describe_probability_volatility_MeanReversion(
-#     path_results=data_real_path('数据文件/生成数据/均值回复概率/多维均值回复概率表.csv'),
-#     path_save=data_real_path('数据文件/生成数据/均值回复概率')+'/多维均值回复概率表数据透视.xlsx'
-# )
+describe_probability_volatility_MeanReversion(
+    path_results=data_real_path('数据文件/生成数据/均值回复概率/多维均值回复概率表.csv'),
+    path_save=data_real_path('数据文件/生成数据/均值回复概率')+'/多维均值回复概率表数据透视.xlsx'
+)
 
 #-------------------------------------------------------
 #绘制波动率均值回复概率分布图
@@ -277,8 +280,8 @@ volatility_multiple_dimension_probability_mean_reversion(
         cols_past=['rV_past_mean', 'dV_past_mean'],  # 过去变量
         cols_future=['rV_future', 'dV_future'],  # 未来变量
 
-        volatility_change_past=[0.1, 0.3, 0.5],  # 过去涨幅(%)
-        volatility_change_future=[-0.1, -0.3, -0.5],  # 未来跌幅(%)
+        volatility_change_past=np.arange(0.05,0.6,0.05),  # 过去涨幅(%)
+        volatility_change_future=-np.arange(0.05,0.3,0.05),  # 未来跌幅(%)
 
         path_save=os.path.join('E:\python_project\Volatility_Mean_Reversion_Regression\数据文件\生成数据\均值回复概率',
                                '多维均值回复概率表绘图版2.csv')
@@ -286,8 +289,8 @@ volatility_multiple_dimension_probability_mean_reversion(
 
 plot_probability_MeanReversion(
         results=pd.read_csv('数据文件/生成数据/均值回复概率/多维均值回复概率表绘图版2.csv'),
-        volatility_change_past=[0.1, 0.3, 0.5],  # 过去涨幅(%)
-        volatility_change_future=[-0.1, -0.3, -0.5],  # 未来跌幅(%)
+        volatility_change_past=np.arange(0.05,0.6,0.05),  # 过去涨幅(%)
+        volatility_change_future=-np.arange(0.05,0.3,0.05),  # 未来跌幅(%)
         pig_save=f'数据文件/生成数据/均值回复概率/多维均值回复概率表.png',
         )
 
