@@ -18,6 +18,8 @@ def reformat_regression_mean_reversion_different_volatility_change():
 
 
 
+
+
     #不同时期的回归结果
 
     results_2 = results[(results['down'] == 'up')&(results['days_past'] ==30)]

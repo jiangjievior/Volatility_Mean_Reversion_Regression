@@ -3,8 +3,99 @@ import numpy as np
 import os
 
 from 功能文件.辅助功能.画图函数2 import plot_figs, plot_cols
-from 数据文件.基本参数 import PATH_UNDER, PATH_VOL_SAMPLE, PATH_SPX
+from 数据文件.基本参数 import PATH_UNDER, PATH_VOL_SAMPLE, PATH_SPX,PATH_VOL_S
 from 项目文件.数据处理.获取期权隐含波动率的指定格式数据 import get_series_vol
+
+
+data=pd.read_csv(PATH_VOL_S)
+
+
+
+
+
+
+
+Characters=['bm','CAPEI' , 'evm', 'pe_op_basic', 'pe_exi', 'pe_inc', 'ps', 'pcf', 'dpr', 'npm', 'opmbd', 'opmad', 'gpm', 'ptpm', 'cfm', 'roa', 'roe', 'roce', 'efftax', 'aftret_eq', 'aftret_invcapx', 'aftret_equity', 'pretret_noa', 'pretret_earnat', 'GProf', 'equity_invcap', 'debt_invcap', 'totdebt_invcap', 'capital_ratio', 'int_debt', 'int_totdebt', 'cash_lt', 'invt_act', 'rect_act', 'debt_at', 'debt_ebitda', 'short_debt', 'curr_debt', 'lt_debt', 'profit_lct', 'ocf_lct', 'cash_debt', 'fcf_ocf', 'lt_ppent', 'dltt_be', 'debt_assets', 'debt_capital', 'de_ratio', 'intcov', 'intcov_ratio', 'cash_ratio', 'quick_ratio', 'curr_ratio', 'cash_conversion', 'inv_turn', 'at_turn', 'rect_turn', 'pay_turn', 'sale_invcap', 'sale_equity', 'sale_nwc', 'rd_sale', 'adv_sale', 'staff_sale', 'accrual', 'ptb', 'PEG_trailing', 'divyield']
+result_all={}
+result_mean_all={}
+
+for Character in Characters:
+    for critian in [0.1,0.2,0.3,0.5]:
+        result=pd.read_csv('E:\python_project\Volatility_Mean_Reversion_Regression\数据文件\生成数据\模拟结果\模拟财务结果'+f'\{Character}_{critian*10}.csv')
+        result_all[f'\{Character}_{critian*10}']=result
+        result_mean_all[f'\{Character}_{critian*10}']=result.mean(axis=0)
+
+pass
+
+
+
+
+
+
+
+data=pd.read_csv("H:\美国个股数据\个股数据\SPY.csv")
+data.sort_values('date',inplace=True)
+data.drop(['ticker','close'],axis=1,inplace=True)
+
+Characters=['bm','CAPEI' , 'evm', 'pe_op_basic', 'pe_exi', 'pe_inc', 'ps', 'pcf', 'dpr', 'npm', 'opmbd', 'opmad', 'gpm', 'ptpm', 'cfm', 'roa', 'roe', 'roce', 'efftax', 'aftret_eq', 'aftret_invcapx', 'aftret_equity', 'pretret_noa', 'pretret_earnat', 'GProf', 'equity_invcap', 'debt_invcap', 'totdebt_invcap', 'capital_ratio', 'int_debt', 'int_totdebt', 'cash_lt', 'invt_act', 'rect_act', 'debt_at', 'debt_ebitda', 'short_debt', 'curr_debt', 'lt_debt', 'profit_lct', 'ocf_lct', 'cash_debt', 'fcf_ocf', 'lt_ppent', 'dltt_be', 'debt_assets', 'debt_capital', 'de_ratio', 'intcov', 'intcov_ratio', 'cash_ratio', 'quick_ratio', 'curr_ratio', 'cash_conversion', 'inv_turn', 'at_turn', 'rect_turn', 'pay_turn', 'sale_invcap', 'sale_equity', 'sale_nwc', 'rd_sale', 'adv_sale', 'staff_sale', 'accrual', 'ptb', 'PEG_trailing', 'divyield']
+
+for Character in Characters:
+    for critian in [0.1,0.2,0.3,0.5]:
+
+        base=np.random.normal(0.5,scale=0.02)
+        for i in range(1,4):
+            data[f'coef{i}']=-abs(np.random.random(size=len(data)))*i*base*critian*10
+
+        data.to_csv('E:\python_project\Volatility_Mean_Reversion_Regression\数据文件\生成数据\模拟结果\模拟财务结果'+f'\{Character}_{critian*10}.csv',encoding='utf_8_sig',index=False)
+
+pass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+data
+
+
+
+
+
+
+
+
+
+
+
+date_s=pd.date_range(start='1996-02-01',end='2021-11-31',periods='D')
+
+date_s
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #生成模拟回归结果：系数、t值、R方

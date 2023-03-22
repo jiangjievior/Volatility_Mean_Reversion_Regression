@@ -6,6 +6,25 @@ import os
 
 
 
+
+data=pd.read_csv("F:\金融数据\美国个股数据\期权隐含波动率曲面.csv",iterator=True,chunksize=40000)
+
+for data_ in data:
+    data_
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 PATH_VOL_IN=r'F:\金融数据\美国个股期权隐含波动率曲面\volatility_surface_in_of_moneyness\volatility_surface_in_of_moneyness.csv'
 volatility=pd.read_csv(PATH_VOL_IN,iterator=True,chunksize=40000)
 

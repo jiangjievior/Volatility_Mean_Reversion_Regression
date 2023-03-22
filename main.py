@@ -14,8 +14,6 @@ from 项目文件.绘图.绘制波动率均值回复概率图 import plot_probab
 ########################################################################################################################
 #临时修改代码，事后务必修改规正
 ########################################################################################################################
-#from 项目文件.数据处理.获取期权隐含波动率的指定格式数据 import get_cross_vol
-#data = pd.read_csv(path_vol,usecols=usecols,skiprows=12490950) 额外增加 ,skiprows=12490950
 
 
 
@@ -187,29 +185,29 @@ from 项目文件.绘图.绘制波动率均值回复概率图 import plot_probab
 #-------------------------------------------------------
 #基于历史波动率不同的上涨幅度或下跌幅度，在不同的过去未来窗口上，波动率均值回复特征回归结果
 #-------------------------------------------------------
-from 项目文件.模型拟合.过去波动率变化_与_未来波动率回复_的关系 import MeanReversionRegressionDifferentWindowsDifferentVolatilityChange
-from 项目文件.模型拟合.过去波动率变化_与_未来波动率回复的概率_之间关系 import \
-    volatility_multiple_dimension_probability_mean_reversion, describe_probability_volatility_MeanReversion
-from 项目文件.绘图.绘制波动率均值回复概率图 import plot_probability_MeanReversion
-
-MRRDWD=MeanReversionRegressionDifferentWindowsDifferentVolatilityChange(
-                 PATH_VOL_S,
-                 models=[['rV_past_mean'],
-                         ['rV_future']],
-                 days_past_windows=[30,60,100],#各种过去变量的滑动窗口长度
-                 days_future_windows=[30,60,100],#各种未来变量的滑动窗口长度
-                 )
-
-MRRDWD.node(data=np.random.random(size=2000),
-            type='quant_q',
-            num=5
-            )
-
-
-MRRDWD.run_OLS(path_save='数据文件\生成数据\均值回复回归'+'\不同涨跌幅下的均值回复回归结果.csv')
-
-#CP:put》delta》days:30》col_past:rV_past_mean》days_past》days_future》date》down:up》node》params
-reformat_regression_mean_reversion_different_volatility_change()
+# from 项目文件.模型拟合.过去波动率变化_与_未来波动率回复_的关系 import MeanReversionRegressionDifferentWindowsDifferentVolatilityChange
+# from 项目文件.模型拟合.过去波动率变化_与_未来波动率回复的概率_之间关系 import \
+#     volatility_multiple_dimension_probability_mean_reversion, describe_probability_volatility_MeanReversion
+# from 项目文件.绘图.绘制波动率均值回复概率图 import plot_probability_MeanReversion
+#
+# MRRDWD=MeanReversionRegressionDifferentWindowsDifferentVolatilityChange(
+#                  PATH_VOL_S,
+#                  models=[['rV_past_mean'],
+#                          ['rV_future']],
+#                  days_past_windows=[30,60,100],#各种过去变量的滑动窗口长度
+#                  days_future_windows=[30,60,100],#各种未来变量的滑动窗口长度
+#                  )
+#
+# MRRDWD.node(data=np.random.random(size=2000),
+#             type='quant_q',
+#             num=5
+#             )
+#
+#
+# MRRDWD.run_OLS(path_save='数据文件\生成数据\均值回复回归'+'\不同涨跌幅下的均值回复回归结果.csv')
+#
+# #CP:put》delta》days:30》col_past:rV_past_mean》days_past》days_future》date》down:up》node》params
+# reformat_regression_mean_reversion_different_volatility_change()
 
 
 #-------------------------------------------------------
@@ -218,11 +216,11 @@ reformat_regression_mean_reversion_different_volatility_change()
 # from 项目文件.数据处理.获取指定个股的财务数据 import finance_ratio_stock
 # from 项目文件.模型拟合.过去波动率变化_与_未来波动率回复_的关系 import CrossDistanceAndVolatilityChangeDifferentCharacters
 # from 项目文件.修改输出结果的格式.修改_拟合距离与波动率变化的关系_输出结果格式 import reformat_OLS_Distance_and_VolChange_cross
-#
-#
-# CDAVCDW=CrossDistanceAndVolatilityChangeDifferentCharacters(PATH_VOL_SAMPLE=PATH_VOL_main,
+
+
+# CDAVCDW=CrossDistanceAndVolatilityChangeDifferentCharacters(PATH_VOL_SAMPLE=PATH_VOL_S['put&delta50&days30'],
 #                                                          days_past=30,
-#                                                          days_future=3
+#                                                          days_future=30
 #                                                          )
 # #生成特征数据，用于将数据划分为不同小组合
 # #依据特征数据的分组排序结果，对各个小组进行拟合
@@ -232,8 +230,88 @@ reformat_regression_mean_reversion_different_volatility_change()
 # result_cross=CDAVCDW.run_OLS(models=[['rV_past_mean'],
 #                                     ['rV_future']],
 #                             )
+
+#-------------------------------------------------------
+#依据财务特征分数据组，并进行OLS拟合
+#put_call:put《delta《days:30《财务指标《财务指标分位数【1-5】《交易日
+#-------------------------------------------------------
+# from 项目文件.数据处理.获取指定个股的财务数据 import finance_ratio_stock
+# from 项目文件.模型拟合.过去波动率变化_与_未来波动率回复_的关系 import \
+#     CrossDistanceAndVolatilityChangeDifferentCharacters
+# from 项目文件.修改输出结果的格式.修改_拟合距离与波动率变化的关系_输出结果格式 import reformat_OLS_Distance_and_VolChange_cross
 #
-# result_cross=reformat_OLS_Distance_and_VolChange_cross(result_cross)
+# Characters=['bm','CAPEI' , 'evm', 'pe_op_basic', 'pe_exi', 'pe_inc', 'ps', 'pcf', 'dpr', 'npm', 'opmbd', 'opmad', 'gpm', 'ptpm', 'cfm', 'roa', 'roe', 'roce', 'efftax', 'aftret_eq', 'aftret_invcapx', 'aftret_equity', 'pretret_noa', 'pretret_earnat', 'GProf', 'equity_invcap', 'debt_invcap', 'totdebt_invcap', 'capital_ratio', 'int_debt', 'int_totdebt', 'cash_lt', 'invt_act', 'rect_act', 'debt_at', 'debt_ebitda', 'short_debt', 'curr_debt', 'lt_debt', 'profit_lct', 'ocf_lct', 'cash_debt', 'fcf_ocf', 'lt_ppent', 'dltt_be', 'debt_assets', 'debt_capital', 'de_ratio', 'intcov', 'intcov_ratio', 'cash_ratio', 'quick_ratio', 'curr_ratio', 'cash_conversion', 'inv_turn', 'at_turn', 'rect_turn', 'pay_turn', 'sale_invcap', 'sale_equity', 'sale_nwc', 'rd_sale', 'adv_sale', 'staff_sale', 'accrual', 'ptb', 'PEG_trailing', 'divyield']
+#
+# for Character in Characters:
+#
+#     try:
+#         for key in PATH_VOL_S.keys():
+#
+#             try:
+#                 CDAVCDW = CrossDistanceAndVolatilityChangeDifferentCharacters(PATH_VOL_SAMPLE=PATH_VOL_S[key],
+#                                                                               days_past=30,
+#                                                                               days_future=30
+#                                                                               )
+#
+#                 CDAVCDW.sort_options_according_charactes(col_Characters=Character,#特征名称
+#                                              q=5#分组数
+#                                              )
+#                 result_cross=CDAVCDW.run_OLS(models=[['rV_past_mean'],
+#                                                     ['rV_future']],
+#                                              path_save=f'数据文件/生成数据/基于财务特征的均值回复结果/财务特征波动率均值回复结果{Character}&{key}.csv'
+#                                             )
+#             except:
+#                 continue
+#     except:
+#         continue
+
+
+#-------------------------------------------------------
+#依据财务特征分数据组，并进行OLS拟合
+#put_call:put《delta《days:30《财务指标《财务指标分位数【1-5】《交易日
+#-------------------------------------------------------
+from 项目文件.数据处理.获取指定个股的财务数据 import finance_ratio_stock
+from 项目文件.模型拟合.过去波动率变化_与_未来波动率回复_的关系 import CrossDistanceAndVolatilityChangeDifferentCharacters, CrossDistanceAndVolatilityChangeDifferentCharacters2
+from 项目文件.修改输出结果的格式.修改_拟合距离与波动率变化的关系_输出结果格式 import reformat_OLS_Distance_and_VolChange_cross
+
+Characters=['bm','CAPEI' , 'evm', 'pe_op_basic', 'pe_exi', 'pe_inc', 'ps', 'pcf', 'dpr', 'npm', 'opmbd', 'opmad', 'gpm', 'ptpm', 'cfm', 'roa', 'roe', 'roce', 'efftax', 'aftret_eq', 'aftret_invcapx', 'aftret_equity', 'pretret_noa', 'pretret_earnat', 'GProf', 'equity_invcap', 'debt_invcap', 'totdebt_invcap', 'capital_ratio', 'int_debt', 'int_totdebt', 'cash_lt', 'invt_act', 'rect_act', 'debt_at', 'debt_ebitda', 'short_debt', 'curr_debt', 'lt_debt', 'profit_lct', 'ocf_lct', 'cash_debt', 'fcf_ocf', 'lt_ppent', 'dltt_be', 'debt_assets', 'debt_capital', 'de_ratio', 'intcov', 'intcov_ratio', 'cash_ratio', 'quick_ratio', 'curr_ratio', 'cash_conversion', 'inv_turn', 'at_turn', 'rect_turn', 'pay_turn', 'sale_invcap', 'sale_equity', 'sale_nwc', 'rd_sale', 'adv_sale', 'staff_sale', 'accrual', 'ptb', 'PEG_trailing', 'divyield']
+
+for Character in Characters:
+
+    try:
+        for key in PATH_VOL_S.keys():
+
+            try:
+                CDAVCDW = CrossDistanceAndVolatilityChangeDifferentCharacters2(PATH_VOL_SAMPLE=PATH_VOL_SAMPLE,#PATH_VOL_S[key],
+                                                                              days_past=30,
+                                                                              days_future=30
+                                                                              )
+
+                CDAVCDW.sort_options_according_charactes(col_Characters=Character,#特征名称
+                                             q=5#分组数
+                                             )
+                result_cross=CDAVCDW.run_OLS(models=[['rV_past_mean'],
+                                                    ['rV_future']],
+                                             path_save=f'数据文件/生成数据/基于财务特征的均值回复结果/财务特征波动率均值回复结果{Character}&{key}.csv'
+                                            )
+            except:
+                continue
+    except:
+        continue
+
+
+
+pass
+
+
+
+
+
+
+
+
+
+
 
 
 ########################################################################################################################

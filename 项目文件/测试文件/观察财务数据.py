@@ -27,9 +27,6 @@ if __name__=='__main__':
 
 
 
-
-
-
     finance=pd.read_csv(PATH_FINANCIAL,iterator=True,chunksize=40000)
     for finance_ in finance:
         finance_
